@@ -228,7 +228,7 @@ class _ViewState extends State<View> {
 
     _searchController.addListener(() async {
       if (_searchController.text.isNotEmpty) {
-        _searchResult = _pdfViewerController.searchText(_searchController.text);
+        _searchResult = await _pdfViewerController.searchText(_searchController.text);
         setState(() {});
       } else {
         _pdfViewerController.clearSelection();
@@ -246,6 +246,20 @@ class _ViewState extends State<View> {
     super.dispose();
   }
 
+  void _jumpToNextMatch() {
+    if (_searchResult.currentInstanceIndex < _searchResult.totalInstanceCount - 1) {
+      _searchResult.nextInstance();
+      setState(() {});
+    }
+  }
+
+  void _jumpToPreviousMatch() {
+    if (_searchResult.currentInstanceIndex > 0) {
+      _searchResult.previousInstance();
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -257,18 +271,32 @@ class _ViewState extends State<View> {
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Find in PDF',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                  },
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      labelText: 'Find in PDF',
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      ),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
                 ),
-                border: const OutlineInputBorder(),
-              ),
+                IconButton(
+                  icon: const Icon(Icons.arrow_upward),
+                  onPressed: _jumpToPreviousMatch,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.arrow_downward),
+                  onPressed: _jumpToNextMatch,
+                ),
+              ],
             ),
           ),
           Text('Matches found: ${_searchResult.totalInstanceCount}'),
